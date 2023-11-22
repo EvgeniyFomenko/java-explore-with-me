@@ -20,8 +20,8 @@
     </properties>
     <modules>
         <module>dto</module>
-        <module>statis-client</module>
-        <module>statis-server</module>
+        <module>stats-client</module>
+        <module>stats-server</module>
     </modules>
 
 </project>

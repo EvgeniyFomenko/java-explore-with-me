@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>ru.fomenko</groupId>
+    <groupId>ru.practicum</groupId>
     <artifactId>ewm-stats-service</artifactId>
     <packaging>pom</packaging>
 

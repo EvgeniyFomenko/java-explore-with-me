@@ -4,17 +4,19 @@ package ru.practicum.statis;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import ru.practicum.AnswerDto;
 import ru.practicum.StatDto;
 import ru.practicum.client.BaseClient;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -31,19 +33,24 @@ public class StatisService extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> postStatistics(@RequestBody StatDto statDto) {
-        return this.post("/hit", statDto);
+    public StatDto postStatistics(@RequestBody StatDto statDto) {
+        ResponseEntity<StatDto> responseEntity = this.post("/hit", statDto, StatDto.builder().build());
+
+        return responseEntity.getBody();
     }
 
-    public ResponseEntity<Object> getStatistic(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end, @RequestParam(required = false) String[] uris, @RequestParam(defaultValue = "false", required = false) String uniq) {
+    public List<AnswerDto> getStatistic(LocalDateTime start, LocalDateTime end, String[] uris, String uniq) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         Map<String, Object> map = Map.of(
-                "start", start,
-                "end", end,
+                "start", start.format(formatter),
+                "end", end.format(formatter),
                 "uris", uris,
                 "uniq", uniq
 
         );
-        return this.get("/stats?start={}&end={}&uris={}&uniq={}", map);
+        ResponseEntity<ArrayList<AnswerDto>> responseEntity = this.get("/stats?start={start}&end={end}&uris={uris}&uniq={uniq}", map, new ArrayList<>());
+
+        return responseEntity.getBody();
     }
 
 

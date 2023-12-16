@@ -65,8 +65,10 @@ public class EventController {
 
     //public
     @GetMapping("/events")
-    public List<EventShortDto> getEvents(@RequestParam(required = false) String text, @RequestParam(required = false) Integer[] categories, @RequestParam(required = false) Boolean paid, @RequestParam(required = false) String rangeStart, @RequestParam(required = false) String rangeEnd, @RequestParam(defaultValue = "false", required = false) Boolean onlyAvailable, @RequestParam(defaultValue = "EVENT_DATE", required = false) String sort, @RequestParam(defaultValue = "0", required = false) Integer from, @RequestParam(defaultValue = "10", required = false) Integer size) {
+    public List<EventShortDto> getEvents(@RequestParam(required = false) String text, @RequestParam(required = false) Integer[] categories, @RequestParam(required = false) Boolean paid, @RequestParam(required = false) String rangeStart, @RequestParam(required = false) String rangeEnd, @RequestParam(defaultValue = "false", required = false) Boolean onlyAvailable, @RequestParam(defaultValue = "EVENT_DATE", required = false) String sort, @RequestParam(defaultValue = "0", required = false) Integer from, @RequestParam(defaultValue = "10", required = false) Integer size, HttpServletRequest request) {
         log.info("Get events with text ={} categories = {} paid = {} rangeStart = {} rangeEnd = {} onlyAvailable = {} sort = {}", text, Arrays.toString(categories), paid, rangeStart, rangeEnd, onlyAvailable, sort);
+        StatDto statDto = StatDto.builder().uri(request.getRequestURI()).ip(request.getRemoteAddr()).app("events").timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString()).build();
+        statsService.postStatistics(statDto);
         return eventService.getAllEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
     }
 

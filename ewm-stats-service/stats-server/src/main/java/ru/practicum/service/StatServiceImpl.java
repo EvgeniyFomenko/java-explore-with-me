@@ -8,6 +8,7 @@ import ru.practicum.ParamStatDto;
 import ru.practicum.StatDto;
 import ru.practicum.entities.StatisticAnswer;
 import ru.practicum.entities.Statistic;
+import ru.practicum.exception.DateStatQueryException;
 import ru.practicum.mapper.StatMapper;
 import ru.practicum.storage.StatStorage;
 
@@ -30,6 +31,9 @@ public class StatServiceImpl implements StatService {
 
     public List<AnswerDto> getStatList(ParamStatDto paramStatDto) {
         log.info("paramStatDto with start = {}, end = {}, uri = {} ", paramStatDto.getStart(), paramStatDto.getEnd(), Arrays.toString(paramStatDto.getUris()));
+        if (paramStatDto.getStart().isAfter(paramStatDto.getEnd())) {
+            throw new DateStatQueryException("Start and end date wrong");
+        }
         List<StatisticAnswer> statisticList = getStatisticList(paramStatDto);
 
         return statisticList

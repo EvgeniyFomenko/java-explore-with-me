@@ -39,8 +39,7 @@ public class CompilationServiceImpl implements CompilationService {
         validation(newCompilationDto);
         Compilation compilationToSave = CompilationMapper.toCompilation(newCompilationDto);
         Compilation compilation = compilationRepository.save(compilationToSave);
-        List<Event> eventList = compilation.getEvent().stream().map(e -> eventRepository.findById(e.getId()).get()).collect(Collectors.toList());
-        compilation.setEvent(eventList);
+        log.info(compilation.toString());
         return CompilationMapper.toCompilationDto(compilation);
     }
 

@@ -12,11 +12,7 @@
     <artifactId>ewm-main-service</artifactId>
     <packaging>jar</packaging>
     <name>ewm-main-service</name>
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.querydsl</groupId>

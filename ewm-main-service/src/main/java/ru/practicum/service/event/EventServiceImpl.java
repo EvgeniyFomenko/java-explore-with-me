@@ -40,32 +40,32 @@ public class EventServiceImpl implements EventService {
     public List<EventFullDto> getEvents(Integer[] users, String[] states, Integer[] categories, String rangeStart, String rangeEnd, int from, int size) {
         PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size, Sort.Direction.ASC, "id");
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime start = null;
-        LocalDateTime end = null;
+        LocalDateTime start;
+        LocalDateTime end;
 
         BooleanExpression byUsersId;
         BooleanExpression byStatesId;
         BooleanExpression byCategories;
-        BooleanExpression byDate = null;
+        BooleanExpression byDate;
         BooleanBuilder result = new BooleanBuilder();
 
         if (Objects.nonNull(rangeStart) || Objects.nonNull(rangeEnd)) {
             start = LocalDateTime.parse(rangeStart, dateTimeFormatter);
             end = LocalDateTime.parse(rangeEnd, dateTimeFormatter);
             byDate = QEvent.event.eventDate.between(start, end);
-            result = result.and(byDate);
+            result.and(byDate);
         }
         if (Objects.nonNull(users)) {
             byUsersId = QEvent.event.initiator.id.in(users);
-            result = result.and(byUsersId);
+            result.and(byUsersId);
         }
         if (Objects.nonNull(states)) {
             byStatesId = QEvent.event.state.in(states);
-            result = result.and(byStatesId);
+            result.and(byStatesId);
         }
         if (Objects.nonNull(categories)) {
             byCategories = QEvent.event.category.id.in(categories);
-            result = result.and(byCategories);
+            result.and(byCategories);
         }
 
 
@@ -116,23 +116,23 @@ public class EventServiceImpl implements EventService {
             int category = updateEventAdminRequest.getCategory();
             event.setCategory(Category.builder().id(category).build());
         }
-        if (State.PUBLISH_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            if (State.PENDING.toString().equals(event.getState())) {
+        if (State.PUBLISH_EVENT.equals(State.valueOf(updateEventAdminRequest.getStateAction()))) {
+            if (State.PENDING.equals(event.getState())) {
                 event.setPublishedOn(LocalDateTime.now());
-                event.setState(State.PUBLISHED.toString());
+                event.setState(State.PUBLISHED);
             } else {
                 throw new CannotPublishedException("Cannot publish the event because it's not in the right state: PUBLISHED");
             }
         } else if (State.REJECT_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            if (State.PENDING.toString().equals(event.getState())) {
+            if (State.PENDING.equals(event.getState())) {
                 event.setPublishedOn(LocalDateTime.now());
-                event.setState(State.CANCELED.toString());
+                event.setState(State.CANCELED);
             } else {
                 throw new CannotPublishedException("Cannot publish the event because it's not in the right state: PUBLISHED");
             }
         } else {
             if (Objects.nonNull(updateEventAdminRequest.getStateAction())) {
-                event.setState(updateEventAdminRequest.getStateAction());
+                event.setState(State.valueOf(updateEventAdminRequest.getStateAction()));
             }
         }
         validateEvent(event);
@@ -155,7 +155,7 @@ public class EventServiceImpl implements EventService {
         event.setLocation(location);
         event.setInitiator(user);
         event.setCategory(category);
-        event.setState(State.PENDING.toString());
+        event.setState(State.PENDING);
         if (Objects.nonNull(eventDto.getRequestModeration())) {
             event.setRequestModeration(eventDto.getRequestModeration());
         } else {
@@ -197,22 +197,22 @@ public class EventServiceImpl implements EventService {
     public EventFullDto putEventByIdUserAndIdEvent(int userId, int eventId, UpdateEventUserRequest updateEventAdminRequest) {
 
         Event event = eventRepository.findByInitiatorIdAndId(userId, eventId).orElseThrow(() -> new NotFoundEventException("Event with id= " + eventId + " was not found"));
-        boolean isPending = State.PENDING.toString().equals(event.getState());
-        boolean isCanceled = State.CANCELED.toString().equals(event.getState());
+        boolean isPending = State.PENDING.equals(event.getState());
+        boolean isCanceled = State.CANCELED.equals(event.getState());
 
         if (!isPending && !isCanceled) {
             throw new CannotRequestException("Only pending or canceled events can be changed");
         } else if (State.PUBLISH_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
             event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.PUBLISHED.toString());
+            event.setState(State.PUBLISHED);
         } else if (State.REJECT_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
             event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.CANCELED.toString());
+            event.setState(State.CANCELED);
         } else if (State.SEND_TO_REVIEW.toString().equals(updateEventAdminRequest.getStateAction())) {
             event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.PENDING.toString());
+            event.setState(State.PENDING);
         } else if (State.CANCEL_REVIEW.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setState(State.CANCELED.toString());
+            event.setState(State.CANCELED);
         }
 
 

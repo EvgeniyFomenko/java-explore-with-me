@@ -6,6 +6,7 @@ import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.user.UpdateEventUserRequest;
 import ru.practicum.entity.Category;
 import ru.practicum.entity.Event;
+import ru.practicum.entity.State;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +46,7 @@ public class EventMapper {
                 .paid(updateEventAdminRequest.getPaid())
                 .participantLimit(updateEventAdminRequest.getParticipantLimit())
                 .requestModeration(updateEventAdminRequest.getRequestModeration())
-                .state(updateEventAdminRequest.getStateAction())
+                .state(State.valueOf(updateEventAdminRequest.getStateAction()))
                 .title(updateEventAdminRequest.getTitle())
                 .build();
     }

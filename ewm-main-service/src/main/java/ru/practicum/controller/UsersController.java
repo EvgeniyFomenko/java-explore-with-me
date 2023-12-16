@@ -18,7 +18,7 @@ public class UsersController {
     private final UserService userService;
 
     @GetMapping("/admin/users")
-    public List<UserDto> getUsers(@RequestParam(required = false) Integer[] ids, @RequestParam(defaultValue = "0", required = false) int from, @RequestParam(defaultValue = "10", required = false) int size) {
+    public List<UserDto> getUsers(@RequestParam(required = false) Integer[] ids, @RequestParam(required = false) int from, @RequestParam(defaultValue = "10", required = false) int size) {
         log.info("Get with user ids={}, from={}, size={}", Arrays.toString(ids), from, size);
         return userService.getUsers(ids, from, size);
     }

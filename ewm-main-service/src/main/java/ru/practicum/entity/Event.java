@@ -39,7 +39,8 @@ public class Event {
     private boolean requestModeration;
     private String title;
     @Column(name = "states")
-    private String state;
+    @Enumerated(EnumType.STRING)
+    private State state;
     private int views;
     @Column(name = "published_on")
     private LocalDateTime publishedOn;

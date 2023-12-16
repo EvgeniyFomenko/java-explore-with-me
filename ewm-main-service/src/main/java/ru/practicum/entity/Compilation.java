@@ -10,13 +10,14 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     private List<Event> event = new ArrayList<>();
     private boolean pinned;
     private String title;

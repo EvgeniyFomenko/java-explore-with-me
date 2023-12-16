@@ -43,7 +43,7 @@ public class RequestServiceImpl implements RequestService {
         if (!event.getState().equals(State.PUBLISHED.toString())) {
             throw new CannotRequestException("Request cannot ");
         }
-        if (event.getParticipantLimit() == participationRequestRepository.findByEvent(eventId).size() & !event.isRequestModeration()) {
+        if (event.getParticipantLimit() == participationRequestRepository.findByEvent(eventId).size() && !event.isRequestModeration()) {
             throw new CannotRequestException("Request cannot, limit requests exhausted");
         }
         ParticipationRequest participationRequest = ParticipationRequest.builder()
@@ -81,7 +81,7 @@ public class RequestServiceImpl implements RequestService {
             }
         }
 
-        long confirmedButNeedProcess = requestList.stream().filter(e -> needProcessing.contains(e.getId()) & e.getStatus().contains(State.CONFIRMED.toString())).count();
+        long confirmedButNeedProcess = requestList.stream().filter(e -> needProcessing.contains(e.getId()) && e.getStatus().contains(State.CONFIRMED.toString())).count();
         if (confirmedButNeedProcess >= 1) {
             throw new CannotRequestException("Not change status already confirmed requseter");
         }

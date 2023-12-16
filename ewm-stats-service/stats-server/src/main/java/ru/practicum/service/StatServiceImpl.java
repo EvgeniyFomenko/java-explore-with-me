@@ -7,7 +7,7 @@ import ru.practicum.AnswerDto;
 import ru.practicum.ParamStatDto;
 import ru.practicum.StatDto;
 import ru.practicum.entities.StatisticAnswer;
-import ru.practicum.entities.StatisticEntity;
+import ru.practicum.entities.Statistic;
 import ru.practicum.mapper.StatMapper;
 import ru.practicum.storage.StatStorage;
 
@@ -23,9 +23,9 @@ public class StatServiceImpl implements StatService {
     private final StatStorage statStorage;
 
     public StatDto saveStat(StatDto statDto) {
-        StatisticEntity statisticEntity = StatMapper.fromDto(statDto);
+        Statistic statistic = StatMapper.fromDto(statDto);
 
-        return StatMapper.toDto(statStorage.save(statisticEntity));
+        return StatMapper.toDto(statStorage.save(statistic));
     }
 
     public List<AnswerDto> getStatList(ParamStatDto paramStatDto) {

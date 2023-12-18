@@ -1,4 +1,4 @@
-package ru.practicum.controller;
+package ru.practicum.controller.admin;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,15 +8,12 @@ import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.category.NewCategoryDto;
 import ru.practicum.service.category.CategoryService;
 
-import java.util.List;
-
 @RestController
 @AllArgsConstructor
 @Slf4j
-public class CategoryController {
+public class CategoryAdminController {
     private final CategoryService categoryService;
 
-    //admin
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/admin/categories")
     public CategoryDto postCategories(@RequestBody NewCategoryDto newCategoryDto) {
@@ -34,17 +31,6 @@ public class CategoryController {
     @PatchMapping("/admin/categories/{catId}")
     public CategoryDto putCategory(@PathVariable int catId, @RequestBody CategoryDto categoryDto) {
         return categoryService.putCategory(catId, categoryDto);
-    }
-
-    //public
-    @GetMapping("/categories")
-    public List<CategoryDto> getCategories(@RequestParam(required = false, defaultValue = "0") int from, @RequestParam(required = false, defaultValue = "10") int size) {
-        return categoryService.getAllCategory(from, size);
-    }
-
-    @GetMapping("/categories/{catId}")
-    public CategoryDto getCategoriesById(@PathVariable int catId) {
-        return categoryService.getCategoryById(catId);
     }
 
 

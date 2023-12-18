@@ -4,6 +4,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.*;
 import ru.practicum.entity.Event;
+import ru.practicum.entity.State;
 
 import javax.annotation.processing.Generated;
 
@@ -26,8 +27,6 @@ public class QEvent extends EntityPathBase<Event> {
 
     public final QCategory category;
 
-    public final NumberPath<Integer> confirmedRequests = createNumber("confirmedRequests", Integer.class);
-
     public final DateTimePath<java.time.LocalDateTime> createdOn = createDateTime("createdOn", java.time.LocalDateTime.class);
 
     public final StringPath description = createString("description");
@@ -48,7 +47,7 @@ public class QEvent extends EntityPathBase<Event> {
 
     public final BooleanPath requestModeration = createBoolean("requestModeration");
 
-    public final StringPath state = createString("state");
+    public final EnumPath<State> state = createEnum("state", State.class);
 
     public final StringPath title = createString("title");
 

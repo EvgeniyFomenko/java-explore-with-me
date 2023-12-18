@@ -40,7 +40,7 @@ public class RequestServiceImpl implements RequestService {
             throw new NameAlreadyException("User already set request");
         }
 
-        if (!event.getState().equals(State.PUBLISHED.toString())) {
+        if (!event.getState().equals(State.PUBLISHED)) {
             throw new CannotRequestException("Request cannot ");
         }
         if (event.getParticipantLimit() == participationRequestRepository.findByEvent(eventId).size() && !event.isRequestModeration()) {

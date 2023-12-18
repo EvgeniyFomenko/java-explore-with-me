@@ -60,7 +60,8 @@ public class EventServiceImpl implements EventService {
             result.and(byUsersId);
         }
         if (Objects.nonNull(states)) {
-            byStatesId = QEvent.event.state.in(states);
+            List<State> stateList = Arrays.stream(states).map(State::valueOf).collect(Collectors.toList());
+            byStatesId = QEvent.event.state.in(stateList);
             result.and(byStatesId);
         }
         if (Objects.nonNull(categories)) {
@@ -116,22 +117,22 @@ public class EventServiceImpl implements EventService {
             int category = updateEventAdminRequest.getCategory();
             event.setCategory(Category.builder().id(category).build());
         }
-        if (State.PUBLISH_EVENT.equals(State.valueOf(updateEventAdminRequest.getStateAction()))) {
-            if (State.PENDING.equals(event.getState())) {
-                event.setPublishedOn(LocalDateTime.now());
-                event.setState(State.PUBLISHED);
+        if (Objects.nonNull(updateEventAdminRequest.getStateAction())) {
+            if (State.PUBLISH_EVENT.equals(State.valueOf(updateEventAdminRequest.getStateAction()))) {
+                if (State.PENDING.equals(event.getState())) {
+                    event.setPublishedOn(LocalDateTime.now());
+                    event.setState(State.PUBLISHED);
+                } else {
+                    throw new CannotPublishedException("Cannot publish the event because it's not in the right state: PUBLISHED");
+                }
+            } else if (State.REJECT_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
+                if (State.PENDING.equals(event.getState())) {
+                    event.setPublishedOn(LocalDateTime.now());
+                    event.setState(State.CANCELED);
+                } else {
+                    throw new CannotPublishedException("Cannot publish the event because it's not in the right state: PUBLISHED");
+                }
             } else {
-                throw new CannotPublishedException("Cannot publish the event because it's not in the right state: PUBLISHED");
-            }
-        } else if (State.REJECT_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            if (State.PENDING.equals(event.getState())) {
-                event.setPublishedOn(LocalDateTime.now());
-                event.setState(State.CANCELED);
-            } else {
-                throw new CannotPublishedException("Cannot publish the event because it's not in the right state: PUBLISHED");
-            }
-        } else {
-            if (Objects.nonNull(updateEventAdminRequest.getStateAction())) {
                 event.setState(State.valueOf(updateEventAdminRequest.getStateAction()));
             }
         }
@@ -170,16 +171,6 @@ public class EventServiceImpl implements EventService {
     }
 
     private void validateEvent(Event event) {
-        if (Objects.isNull(event.getDescription()) || event.getDescription().length() < 20 || event.getDescription().length() > 7000 || event.getDescription().isBlank() || event.getDescription().isEmpty()) {
-            throw new WrongPostEventException("Field: description. Error: must not be blank. Value:" + event.getDescription());
-        }
-        if (Objects.isNull(event.getAnnotation()) || event.getAnnotation().length() < 20 || event.getAnnotation().length() > 2000 || event.getAnnotation().isBlank() || event.getAnnotation().isEmpty()) {
-            throw new WrongPostEventException("Field: annotation. Error: must not be blank. Value:" + event.getAnnotation());
-        }
-        if (event.getTitle().length() < 3 || event.getTitle().length() > 120) {
-            throw new WrongPostEventException("Field: annotation. Error: must not be blank. Value:" + event.getTitle());
-
-        }
         if (!event.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
             throw new WrongPostEventException("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value:" + event.getEventDate());
         }
@@ -275,10 +266,6 @@ public class EventServiceImpl implements EventService {
             result.and(byCategories);
         }
 
-        if (Objects.nonNull(onlyAvailable)) {
-            BooleanExpression byAvailable = QEvent.event.confirmedRequests.lt(QEvent.event.participantLimit);
-            result.and(byAvailable);
-        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         if (Objects.nonNull(rangeEnd) || Objects.nonNull(rangeStart)) {
 
@@ -316,8 +303,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto getEventById(int id) {
-        EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.findByIdAndState(id, State.PUBLISHED.toString()).orElseThrow(() -> new NotFoundEventException("Event not found")));
-        long confirmedRequest = participationRequestRepository.findByEvent(id).stream().filter(e -> e.getStatus().equals(State.CONFIRMED.toString())).count();
+        EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.findByIdAndState(id, State.PUBLISHED).orElseThrow(() -> new NotFoundEventException("Event not found")));
+        long confirmedRequest = participationRequestRepository.findByEvent(id).stream().filter(e -> State.valueOf(e.getStatus()).equals(State.CONFIRMED)).count();
         eventFullDto.setConfirmedRequests(confirmedRequest);
         eventFullDto.setViews(getViews(id));
         return eventFullDto;

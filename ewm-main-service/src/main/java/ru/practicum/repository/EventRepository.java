@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import ru.practicum.entity.Event;
+import ru.practicum.entity.State;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,9 +19,11 @@ public interface EventRepository extends JpaRepository<Event, Integer>, Querydsl
 
     Optional<Event> findByIdAndInitiatorId(int eventId, int userId);
 
-    Optional<Event> findByIdAndState(int id, String state);
+    Optional<Event> findByIdAndState(int id, State state);
 
     List<Event> findByCategoryId(int catId);
+
+    List<Event> findAllByIdIn(Integer[] ids);
 
 
 }

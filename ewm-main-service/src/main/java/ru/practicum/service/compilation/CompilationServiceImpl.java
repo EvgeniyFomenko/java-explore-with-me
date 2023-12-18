@@ -33,13 +33,14 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto postCompilation(NewCompilationDto newCompilationDto) {
-        if (Objects.isNull(newCompilationDto.getTitle())) {
-            throw new CompilationException("Name is not can null");
+        if (Objects.isNull(newCompilationDto.getEvents())) {
+            newCompilationDto.setEvents(new Integer[0]);
         }
-        validation(newCompilationDto);
+        List<Event> events = eventRepository.findAllByIdIn(newCompilationDto.getEvents());
         Compilation compilationToSave = CompilationMapper.toCompilation(newCompilationDto);
+        compilationToSave.setEvent(events);
         Compilation compilation = compilationRepository.save(compilationToSave);
-        log.info(compilation.toString());
+
         return CompilationMapper.toCompilationDto(compilation);
     }
 
@@ -79,7 +80,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto putCompilation(int id, UpdateCompilationRequest updComp) {
-        validation(NewCompilationDto.builder().title(updComp.getTitle()).events(updComp.getEvents()).build());
+//        validation(NewCompilationDto.builder().title(updComp.getTitle()).events(updComp.getEvents()).build());
         Compilation compilation = compilationRepository.findById(id).orElseThrow(() -> new CompilationNotFound("Compilation not found"));
         if (Objects.nonNull(updComp.getEvents())) {
             List<Event> list = Arrays.stream(updComp.getEvents()).map(e -> eventRepository.findById(e).orElseThrow(() -> new NotFoundEventException("Event not found"))).collect(Collectors.toList());

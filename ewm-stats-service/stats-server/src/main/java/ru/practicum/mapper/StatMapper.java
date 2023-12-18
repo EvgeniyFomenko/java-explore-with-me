@@ -2,8 +2,8 @@ package ru.practicum.mapper;
 
 import ru.practicum.AnswerDto;
 import ru.practicum.StatDto;
-import ru.practicum.entities.StatisticAnswer;
 import ru.practicum.entities.Statistic;
+import ru.practicum.entities.StatisticAnswer;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -67,3 +67,9 @@ CREATE TABLE IF NOT EXISTS compilation_event
     compilation_id BIGINT REFERENCES compilation (id),
     event_id       BIGINT REFERENCES event (id)
 );
+
+CREATE TABLE IF NOT EXISTS subscriptions
+(
+    follower    BIGINT REFERENCES users (id),
+    event_maker BIGINT REFERENCES users (id)
+);

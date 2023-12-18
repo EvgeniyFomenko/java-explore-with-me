@@ -190,22 +190,25 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByInitiatorIdAndId(userId, eventId).orElseThrow(() -> new NotFoundEventException("Event with id= " + eventId + " was not found"));
         boolean isPending = State.PENDING.equals(event.getState());
         boolean isCanceled = State.CANCELED.equals(event.getState());
-
         if (!isPending && !isCanceled) {
             throw new CannotRequestException("Only pending or canceled events can be changed");
-        } else if (State.PUBLISH_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.PUBLISHED);
-        } else if (State.REJECT_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.CANCELED);
-        } else if (State.SEND_TO_REVIEW.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.PENDING);
-        } else if (State.CANCEL_REVIEW.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setState(State.CANCELED);
         }
 
+        if (Objects.nonNull(updateEventAdminRequest.getStateAction())) {
+            State stateUpdate = State.valueOf(updateEventAdminRequest.getStateAction());
+            if (State.PUBLISH_EVENT.equals(stateUpdate)) {
+                event.setPublishedOn(LocalDateTime.now());
+                event.setState(State.PUBLISHED);
+            } else if (State.REJECT_EVENT.equals(stateUpdate)) {
+                event.setPublishedOn(LocalDateTime.now());
+                event.setState(State.CANCELED);
+            } else if (State.SEND_TO_REVIEW.equals(stateUpdate)) {
+                event.setPublishedOn(LocalDateTime.now());
+                event.setState(State.PENDING);
+            } else if (State.CANCEL_REVIEW.equals(stateUpdate)) {
+                event.setState(State.CANCELED);
+            }
+        }
 
         if (Objects.nonNull(updateEventAdminRequest.getPaid())) {
             event.setPaid(updateEventAdminRequest.getPaid());
@@ -310,7 +313,31 @@ public class EventServiceImpl implements EventService {
         return eventFullDto;
     }
 
-    private int getViews(int id) {
+    @Override
+    public List<EventFullDto> getEventSubscribesByFollowerId(int followerId, State state) {
+        if (State.PUBLISH_EVENT.equals(state)) {
+            state = State.PUBLISHED;
+        } else if (State.REJECT_EVENT.equals(state)) {
+            state = State.CANCELED;
+        } else if (State.SEND_TO_REVIEW.equals(state)) {
+            state = State.PENDING;
+        } else if (State.CANCEL_REVIEW.equals(state)) {
+            state = State.CANCELED;
+        }
+
+        User follower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
+        List<EventFullDto> subscribeEvents = new ArrayList<>();
+
+        if (Objects.nonNull(follower.getEventMakers())) {
+            State finalState = state;
+            subscribeEvents = eventRepository.findAllByInitiatorIdIn(follower.getEventMakers().stream().map(User::getId).collect(Collectors.toList())).stream().filter(e -> e.getState().equals(finalState)).map(EventMapper::toEventFullDto).collect(Collectors.toList());
+        }
+
+        return subscribeEvents;
+    }
+
+    @Override
+    public int getViews(int id) {
         String[] eventsPoint = {"/events/" + id};
         return statsService.getStatistic(LocalDateTime.now().minusYears(1), LocalDateTime.now().plusDays(1), eventsPoint, "true").size();
     }

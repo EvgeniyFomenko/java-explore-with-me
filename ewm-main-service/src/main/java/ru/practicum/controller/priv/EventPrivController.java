@@ -11,8 +11,11 @@ import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.user.UpdateEventUserRequest;
+import ru.practicum.dto.user.UserDtoWithSubscribe;
+import ru.practicum.entity.State;
 import ru.practicum.service.event.EventServiceImpl;
 import ru.practicum.service.request.RequestService;
+import ru.practicum.service.users.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.List;
 public class EventPrivController {
     private final EventServiceImpl eventService;
     private final RequestService requestService;
+    private final UserService userService;
 
     @GetMapping("/users/{userId}/events")
     public List<EventShortDto> getEvent(@PathVariable int userId, @RequestParam(defaultValue = "0") Integer from, @RequestParam(required = false,
@@ -65,4 +69,25 @@ public class EventPrivController {
 
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/user/{followerId}/subscribe/{eventMakerId}")
+    public UserDtoWithSubscribe subscribeToEventMaker(@PathVariable int followerId, @PathVariable int eventMakerId) {
+        return userService.subscribeToEventMaker(followerId, eventMakerId);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/user/{followerId}/subscribe/{eventMakerId}/delete")
+    public void deleteSubscribe(@PathVariable int followerId, @PathVariable int eventMakerId) {
+        userService.deleteEventMakerFromSubscribe(followerId, eventMakerId);
+    }
+
+    @GetMapping("/events/user/{followerId}/subscribe")
+    public List<EventFullDto> getEventSubscribesByFollowerId(@PathVariable int followerId, @RequestParam(defaultValue = "PUBLISH_EVENT") String state) {
+        return eventService.getEventSubscribesByFollowerId(followerId, State.valueOf(state));
+    }
+
+    @GetMapping("/user/{followerId}/subscribe")
+    public List<UserDtoWithSubscribe> getUserSubscribesByFollowerId(@PathVariable int followerId) {
+        return userService.getUserSubscribesByFollowerId(followerId);
+    }
 }

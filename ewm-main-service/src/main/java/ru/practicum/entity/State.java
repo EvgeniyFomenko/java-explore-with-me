@@ -10,6 +10,5 @@ public enum State {
     SEND_TO_REVIEW,
     CONFIRMED,
     REJECTED,
-
     CANCEL_REVIEW;
 }

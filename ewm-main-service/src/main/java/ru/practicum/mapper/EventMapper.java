@@ -6,6 +6,7 @@ import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.user.UpdateEventUserRequest;
 import ru.practicum.entity.Category;
 import ru.practicum.entity.Event;
+import ru.practicum.entity.Location;
 import ru.practicum.entity.State;
 
 import java.time.LocalDateTime;
@@ -25,7 +26,7 @@ public class EventMapper {
                 .views(event.getViews())
                 .description(event.getDescription())
                 .initiator(UserMapper.toUserShort(event.getInitiator()))
-                .location(event.getLocation())
+                .location(Location.builder().lon(event.getLon()).lat(event.getLat()).build())
                 .createdOn(event.getCreatedOn().toString())
                 .annotation(event.getAnnotation())
                 .participantLimit(event.getParticipantLimit())
@@ -42,7 +43,8 @@ public class EventMapper {
                 .category(Category.builder().id(updateEventAdminRequest.getCategory()).build())
                 .description(updateEventAdminRequest.getDescription())
                 .eventDate(LocalDateTime.parse(updateEventAdminRequest.getEventDate(), formatter))
-                .location(updateEventAdminRequest.getLocation())
+                .lat(updateEventAdminRequest.getLocation().getLat())
+                .lon(updateEventAdminRequest.getLocation().getLon())
                 .paid(updateEventAdminRequest.getPaid())
                 .participantLimit(updateEventAdminRequest.getParticipantLimit())
                 .requestModeration(updateEventAdminRequest.getRequestModeration())
@@ -70,7 +72,8 @@ public class EventMapper {
                 .category(Category.builder().id(eventDto.getCategory()).build())
                 .description(eventDto.getDescription())
                 .eventDate(LocalDateTime.parse(eventDto.getEventDate(), formatter))
-                .location(eventDto.getLocation())
+                .lat(eventDto.getLocation().getLat())
+                .lon(eventDto.getLocation().getLon())
                 .paid(eventDto.isPaid())
                 .participantLimit(eventDto.getParticipantLimit())
                 .requestModeration(Objects.nonNull(eventDto.getRequestModeration()) ? eventDto.getRequestModeration() : true)

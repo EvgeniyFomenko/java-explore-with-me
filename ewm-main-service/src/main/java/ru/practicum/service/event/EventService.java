@@ -5,6 +5,7 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.user.UpdateEventUserRequest;
+import ru.practicum.entity.State;
 
 import java.util.List;
 
@@ -27,4 +28,7 @@ public interface EventService {
 
     EventFullDto getEventById(int id);
 
+    List<EventFullDto> getEventSubscribesByFollowerId(int followerId, State state);
+
+    int getViews(int id);
 }

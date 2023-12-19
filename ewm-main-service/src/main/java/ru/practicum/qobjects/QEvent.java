@@ -37,7 +37,9 @@ public class QEvent extends EntityPathBase<Event> {
 
     public final QUser initiator;
 
-    public final QLocation location;
+    public final NumberPath<Float> lat = createNumber("lat", Float.class);
+
+    public final NumberPath<Float> lon = createNumber("lon", Float.class);
 
     public final BooleanPath paid = createBoolean("paid");
 
@@ -73,7 +75,6 @@ public class QEvent extends EntityPathBase<Event> {
         super(type, metadata, inits);
         this.category = inits.isInitialized("category") ? new QCategory(forProperty("category")) : null;
         this.initiator = inits.isInitialized("initiator") ? new QUser(forProperty("initiator")) : null;
-        this.location = inits.isInitialized("location") ? new QLocation(forProperty("location")) : null;
     }
 
 }

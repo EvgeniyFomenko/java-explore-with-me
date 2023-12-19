@@ -12,12 +12,17 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.user.UpdateEventUserRequest;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.*;
 import ru.practicum.exception.*;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.qobjects.QEvent;
-import ru.practicum.repository.*;
+import ru.practicum.repository.CategoryRepository;
+import ru.practicum.repository.EventRepository;
+import ru.practicum.repository.ParticipationRequestRepository;
+import ru.practicum.repository.UserRepository;
 import ru.practicum.service.StatsService;
+import ru.practicum.service.users.UserService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,10 +35,10 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
-    private final LocationRepository locationRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository participationRequestRepository;
     private final StatsService statsService;
+    private final UserService userService;
 
 
     @Override
@@ -150,10 +155,8 @@ public class EventServiceImpl implements EventService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFountException("Пользователь не найден"));
         Category category = categoryRepository.findById(eventDto.getCategory()).orElseThrow(() -> new NotFoundCategoryException("Категория не найдена"));
         Event event = EventMapper.fromNewDto(eventDto);
-        validateEvent(event);
 
-        Location location = locationRepository.save(event.getLocation());
-        event.setLocation(location);
+        validateEvent(event);
         event.setInitiator(user);
         event.setCategory(category);
         event.setState(State.PENDING);
@@ -190,22 +193,25 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByInitiatorIdAndId(userId, eventId).orElseThrow(() -> new NotFoundEventException("Event with id= " + eventId + " was not found"));
         boolean isPending = State.PENDING.equals(event.getState());
         boolean isCanceled = State.CANCELED.equals(event.getState());
-
         if (!isPending && !isCanceled) {
             throw new CannotRequestException("Only pending or canceled events can be changed");
-        } else if (State.PUBLISH_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.PUBLISHED);
-        } else if (State.REJECT_EVENT.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.CANCELED);
-        } else if (State.SEND_TO_REVIEW.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setPublishedOn(LocalDateTime.now());
-            event.setState(State.PENDING);
-        } else if (State.CANCEL_REVIEW.toString().equals(updateEventAdminRequest.getStateAction())) {
-            event.setState(State.CANCELED);
         }
 
+        if (Objects.nonNull(updateEventAdminRequest.getStateAction())) {
+            State stateUpdate = State.valueOf(updateEventAdminRequest.getStateAction());
+            if (State.PUBLISH_EVENT.equals(stateUpdate)) {
+                event.setPublishedOn(LocalDateTime.now());
+                event.setState(State.PUBLISHED);
+            } else if (State.REJECT_EVENT.equals(stateUpdate)) {
+                event.setPublishedOn(LocalDateTime.now());
+                event.setState(State.CANCELED);
+            } else if (State.SEND_TO_REVIEW.equals(stateUpdate)) {
+                event.setPublishedOn(LocalDateTime.now());
+                event.setState(State.PENDING);
+            } else if (State.CANCEL_REVIEW.equals(stateUpdate)) {
+                event.setState(State.CANCELED);
+            }
+        }
 
         if (Objects.nonNull(updateEventAdminRequest.getPaid())) {
             event.setPaid(updateEventAdminRequest.getPaid());
@@ -238,6 +244,12 @@ public class EventServiceImpl implements EventService {
 
         if (Objects.nonNull(updateEventAdminRequest.getTitle())) {
             event.setTitle(updateEventAdminRequest.getTitle());
+        }
+
+        if (Objects.nonNull(updateEventAdminRequest.getLocation())) {
+            Location location = updateEventAdminRequest.getLocation();
+            event.setLat(location.getLat());
+            event.setLon(location.getLon());
         }
         validateEvent(event);
 
@@ -310,7 +322,30 @@ public class EventServiceImpl implements EventService {
         return eventFullDto;
     }
 
-    private int getViews(int id) {
+    @Override
+    public List<EventFullDto> getEventSubscribesByFollowerId(int followerId, State state) {
+        if (State.PUBLISH_EVENT.equals(state)) {
+            state = State.PUBLISHED;
+        } else if (State.REJECT_EVENT.equals(state)) {
+            state = State.CANCELED;
+        } else if (State.SEND_TO_REVIEW.equals(state)) {
+            state = State.PENDING;
+        } else if (State.CANCEL_REVIEW.equals(state)) {
+            state = State.CANCELED;
+        }
+
+        User follower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
+        List<EventFullDto> subscribeEvents = new ArrayList<>();
+        List<Integer> eventPublishers = userService.getUserSubscribesByFollowerId(followerId).stream().map(UserShortDto::getId).collect(Collectors.toList());
+        if (eventPublishers.isEmpty()) {
+            subscribeEvents = eventRepository.findAllByInitiatorIdInAndState(eventPublishers, state).stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
+        }
+
+        return subscribeEvents;
+    }
+
+    @Override
+    public int getViews(int id) {
         String[] eventsPoint = {"/events/" + id};
         return statsService.getStatistic(LocalDateTime.now().minusYears(1), LocalDateTime.now().plusDays(1), eventsPoint, "true").size();
     }

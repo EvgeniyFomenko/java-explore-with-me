@@ -91,12 +91,32 @@ public class ControllerException {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError compilationWrongException(SubscribeException subscribeException) {
+        return ApiError.builder().message(subscribeException.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .status(HttpStatus.BAD_REQUEST.toString())
+                .reason("Incorrectly made request.")
+                .build();
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError compilationNotFoundException(CompilationNotFound compilationNotFound) {
         return ApiError.builder().message(compilationNotFound.getMessage())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .status("NOT_FOUND")
                 .reason("Compilation not found")
+                .build();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError userNotFoundException(UserNotFountException compilationNotFound) {
+        return ApiError.builder().message(compilationNotFound.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .status("NOT_FOUND")
+                .reason("User not found")
                 .build();
     }
 
@@ -140,4 +160,13 @@ public class ControllerException {
                 .build();
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleThrowable(final Throwable e) {
+        return ApiError.builder().message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .status("INTERNAL_SERVER_ERROR")
+                .reason("Error")
+                .build();
+    }
 }

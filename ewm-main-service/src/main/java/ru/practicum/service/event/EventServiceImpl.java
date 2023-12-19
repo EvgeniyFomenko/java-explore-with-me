@@ -12,7 +12,6 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.user.UpdateEventUserRequest;
-import ru.practicum.dto.user.UserDtoWithSubscribe;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.*;
 import ru.practicum.exception.*;

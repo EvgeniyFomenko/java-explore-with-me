@@ -11,7 +11,6 @@ import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.dto.compilation.UpdateCompilationRequest;
 import ru.practicum.entity.Compilation;
 import ru.practicum.entity.Event;
-import ru.practicum.exception.CompilationException;
 import ru.practicum.exception.CompilationNotFound;
 import ru.practicum.exception.NotFoundEventException;
 import ru.practicum.mapper.CompilationMapper;
@@ -44,20 +43,6 @@ public class CompilationServiceImpl implements CompilationService {
         return CompilationMapper.toCompilationDto(compilation);
     }
 
-    private void validation(NewCompilationDto compilation) {
-        if (Objects.nonNull(compilation.getTitle())) {
-            if (compilation.getTitle().isBlank() || compilation.getTitle().isEmpty()) {
-                throw new CompilationException("Name is empty or blank");
-            }
-            if (compilation.getTitle().length() > 50) {
-                throw new CompilationException("Name length not might bigger than 50");
-            }
-        }
-        if (Objects.isNull(compilation.getEvents())) {
-            compilation.setEvents(new Integer[0]);
-        }
-    }
-
     @Override
     public List<CompilationDto> getAllCompilation(String pinned, int from, int size) {
         PageRequest pageRequest = PageRequest.of(from > 0 ? from / size : 0, size, Sort.Direction.ASC, "id");
@@ -80,7 +65,6 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto putCompilation(int id, UpdateCompilationRequest updComp) {
-//        validation(NewCompilationDto.builder().title(updComp.getTitle()).events(updComp.getEvents()).build());
         Compilation compilation = compilationRepository.findById(id).orElseThrow(() -> new CompilationNotFound("Compilation not found"));
         if (Objects.nonNull(updComp.getEvents())) {
             List<Event> list = Arrays.stream(updComp.getEvents()).map(e -> eventRepository.findById(e).orElseThrow(() -> new NotFoundEventException("Event not found"))).collect(Collectors.toList());

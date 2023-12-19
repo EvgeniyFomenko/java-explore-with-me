@@ -3,6 +3,7 @@ package ru.practicum.service.users;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserDtoWithSubscribe;
+import ru.practicum.dto.user.UserShortDto;
 
 import java.util.List;
 
@@ -17,5 +18,5 @@ public interface UserService {
 
     void deleteEventMakerFromSubscribe(int followerId, int eventMakerId);
 
-    List<UserDtoWithSubscribe> getUserSubscribesByFollowerId(int followerId);
+    List<UserShortDto> getUserSubscribesByFollowerId(int followerId);
 }

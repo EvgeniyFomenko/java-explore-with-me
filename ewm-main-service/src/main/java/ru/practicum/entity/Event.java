@@ -30,9 +30,6 @@ public class Event {
     private LocalDateTime eventDate;
     @Column(name = "created_on")
     private LocalDateTime createdOn;
-    @ManyToOne
-    @JoinColumn(name = "location_id")
-    private Location location;
     @Column(name = "paid")
     private boolean paid;
     @Column(name = "participant_limit")
@@ -50,4 +47,6 @@ public class Event {
     private LocalDateTime publishedOn;
     @Transient
     private int confirmedRequests;
+    private float lat;
+    private float lon;
 }

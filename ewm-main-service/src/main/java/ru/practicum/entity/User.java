@@ -19,8 +19,6 @@ public class User {
     private int id;
     private String email;
     private String name;
-    @ManyToMany
-    @JoinTable(name = "subscriptions", joinColumns = @JoinColumn(name = "follower"),
-            inverseJoinColumns = @JoinColumn(name = " event_maker"))
+    @Transient
     private List<User> eventMakers;
 }

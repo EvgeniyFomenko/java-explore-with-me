@@ -12,12 +12,18 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.user.UpdateEventUserRequest;
+import ru.practicum.dto.user.UserDtoWithSubscribe;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.*;
 import ru.practicum.exception.*;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.qobjects.QEvent;
-import ru.practicum.repository.*;
+import ru.practicum.repository.CategoryRepository;
+import ru.practicum.repository.EventRepository;
+import ru.practicum.repository.ParticipationRequestRepository;
+import ru.practicum.repository.UserRepository;
 import ru.practicum.service.StatsService;
+import ru.practicum.service.users.UserService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,10 +36,10 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
-    private final LocationRepository locationRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository participationRequestRepository;
     private final StatsService statsService;
+    private final UserService userService;
 
 
     @Override
@@ -150,10 +156,8 @@ public class EventServiceImpl implements EventService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFountException("Пользователь не найден"));
         Category category = categoryRepository.findById(eventDto.getCategory()).orElseThrow(() -> new NotFoundCategoryException("Категория не найдена"));
         Event event = EventMapper.fromNewDto(eventDto);
-        validateEvent(event);
 
-        Location location = locationRepository.save(event.getLocation());
-        event.setLocation(location);
+        validateEvent(event);
         event.setInitiator(user);
         event.setCategory(category);
         event.setState(State.PENDING);
@@ -242,6 +246,12 @@ public class EventServiceImpl implements EventService {
         if (Objects.nonNull(updateEventAdminRequest.getTitle())) {
             event.setTitle(updateEventAdminRequest.getTitle());
         }
+
+        if (Objects.nonNull(updateEventAdminRequest.getLocation())) {
+            Location location = updateEventAdminRequest.getLocation();
+            event.setLat(location.getLat());
+            event.setLon(location.getLon());
+        }
         validateEvent(event);
 
         return EventMapper.toEventFullDto(eventRepository.save(event));
@@ -327,10 +337,9 @@ public class EventServiceImpl implements EventService {
 
         User follower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
         List<EventFullDto> subscribeEvents = new ArrayList<>();
-
-        if (Objects.nonNull(follower.getEventMakers())) {
-            State finalState = state;
-            subscribeEvents = eventRepository.findAllByInitiatorIdIn(follower.getEventMakers().stream().map(User::getId).collect(Collectors.toList())).stream().filter(e -> e.getState().equals(finalState)).map(EventMapper::toEventFullDto).collect(Collectors.toList());
+        List<Integer> eventPublishers = userService.getUserSubscribesByFollowerId(followerId).stream().map(UserShortDto::getId).collect(Collectors.toList());
+        if (eventPublishers.isEmpty()) {
+            subscribeEvents = eventRepository.findAllByInitiatorIdInAndState(eventPublishers, state).stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
         }
 
         return subscribeEvents;

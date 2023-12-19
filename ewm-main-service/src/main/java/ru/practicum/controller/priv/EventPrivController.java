@@ -12,6 +12,7 @@ import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.user.UpdateEventUserRequest;
 import ru.practicum.dto.user.UserDtoWithSubscribe;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.State;
 import ru.practicum.service.event.EventServiceImpl;
 import ru.practicum.service.request.RequestService;
@@ -32,14 +33,14 @@ public class EventPrivController {
     @GetMapping("/users/{userId}/events")
     public List<EventShortDto> getEvent(@PathVariable int userId, @RequestParam(defaultValue = "0") Integer from, @RequestParam(required = false,
             defaultValue = "10") Integer size) {
-        EventPrivController.log.info("Get evetnts by user with userId = {} from = {} size = {}", userId, from, size);
+        log.info("Get evetnts by user with userId = {} from = {} size = {}", userId, from, size);
         return eventService.getEventsByUserId(userId, from, size);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users/{userId}/events")
     public EventFullDto postEvent(@PathVariable int userId, @Valid @RequestBody NewEventDto eventDto) {
-        EventPrivController.log.info("Post event with userId = {}, eventDto = {}", userId, eventDto);
+        log.info("Post event with userId = {}, eventDto = {}", userId, eventDto);
         return eventService.postEvent(userId, eventDto);
     }
 
@@ -56,7 +57,7 @@ public class EventPrivController {
 
     @GetMapping("/users/{userId}/events/{eventId}/requests")
     public List<ParticipationRequestDto> getRequestByUserAndEvent(@PathVariable int userId, @PathVariable int eventId) {
-        EventPrivController.log.info("Get request with userId = {}, requestId = {}", userId, eventId);
+        log.info("Get request with userId = {}, requestId = {}", userId, eventId);
         return requestService.getRequestByUserIdAndEventId(userId, eventId);
     }
 
@@ -64,7 +65,7 @@ public class EventPrivController {
     public EventRequestStatusUpdateResult patchRequestByUserAndEvent(@PathVariable int userId,
                                                                      @PathVariable int eventId,
                                                                      @RequestBody EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
-        EventPrivController.log.info("Patch request with userId = {}, requestId = {}, eventUpdateBody = {}", userId, eventId, eventRequestStatusUpdateRequest);
+        log.info("Patch request with userId = {}, requestId = {}, eventUpdateBody = {}", userId, eventId, eventRequestStatusUpdateRequest);
         return requestService.patchRequestByUserIdAndEventId(userId, eventId, eventRequestStatusUpdateRequest);
 
     }
@@ -87,7 +88,7 @@ public class EventPrivController {
     }
 
     @GetMapping("/user/{followerId}/subscribe")
-    public List<UserDtoWithSubscribe> getUserSubscribesByFollowerId(@PathVariable int followerId) {
+    public List<UserShortDto> getUserSubscribesByFollowerId(@PathVariable int followerId) {
         return userService.getUserSubscribesByFollowerId(followerId);
     }
 }

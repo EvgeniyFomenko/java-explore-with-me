@@ -160,4 +160,13 @@ public class ControllerException {
                 .build();
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleThrowable(final Throwable e) {
+        return ApiError.builder().message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .status("INTERNAL_SERVER_ERROR")
+                .reason("Error")
+                .build();
+    }
 }

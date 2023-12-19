@@ -2,9 +2,7 @@ package ru.practicum.qobjects;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
-import com.querydsl.core.types.dsl.EntityPathBase;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import ru.practicum.entity.User;
 
 import javax.annotation.processing.Generated;
@@ -23,6 +21,8 @@ public class QUser extends EntityPathBase<User> {
     public static final QUser user = new QUser("user");
 
     public final StringPath email = createString("email");
+
+    public final ListPath<User, QUser> eventMakers = this.<User, QUser>createList("eventMakers", User.class, QUser.class, PathInits.DIRECT2);
 
     public final NumberPath<Integer> id = createNumber("id", Integer.class);
 

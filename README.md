@@ -1,3 +1,3 @@
 # java-explore-with-me
 
-Template repository for ExploreWithMe project.
+[Пул реквест с Фичей subscriptions](https://github.com/EvgeniyFomenko/java-explore-with-me/pull/3)

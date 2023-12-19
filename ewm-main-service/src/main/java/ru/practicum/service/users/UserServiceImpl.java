@@ -8,12 +8,15 @@ import org.springframework.stereotype.Service;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserDtoWithSubscribe;
+import ru.practicum.dto.user.UserShortDto;
+import ru.practicum.entity.Subscription;
 import ru.practicum.entity.User;
 import ru.practicum.exception.NameAlreadyException;
 import ru.practicum.exception.SubscribeException;
 import ru.practicum.exception.UserNotFountException;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.qobjects.QUser;
+import ru.practicum.repository.SubscriptionRepository;
 import ru.practicum.repository.UserRepository;
 
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
     public final UserRepository userRepository;
+    public final SubscriptionRepository subscriptionRepository;
 
     @Override
     public List<UserDto> getUsers(Integer[] ids, int from, int size) {
@@ -55,29 +59,32 @@ public class UserServiceImpl implements UserService {
         }
         User follower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
         User eventPublisher = userRepository.findById(eventPublisherId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + eventPublisherId + " не найден"));
-        if (follower.getEventMakers().contains(eventPublisher)) {
+        List<Subscription> subscription = subscriptionRepository.findAllByFollowerId(followerId);
+        List<User> eventPublishers = subscription.stream().map(Subscription::getEventMaker).collect(Collectors.toList());
+        if (eventPublishers.contains(eventPublisher)) {
             throw new SubscribeException("User already follow to this event publisher");
         }
-        List<User> eventMakers = follower.getEventMakers();
-        eventMakers.add(eventPublisher);
+        eventPublishers.add(eventPublisher);
 
-        return UserMapper.toUserDtoSubscribe(userRepository.save(follower));
+        Subscription subscriptionSave = Subscription.builder().follower(follower).eventMaker(eventPublisher).build();
+        subscriptionRepository.save(subscriptionSave);
+        follower.setEventMakers(eventPublishers);
+        return UserMapper.toUserDtoSubscribe(follower);
     }
 
     @Override
     public void deleteEventMakerFromSubscribe(int followerId, int eventMakerId) {
-        User folower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
-        User eventPulisher = userRepository.findById(eventMakerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + eventMakerId + " не найден"));
-
-        folower.getEventMakers().remove(eventPulisher);
-        userRepository.save(folower);
-
+        User follower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
+        User eventPublisher = userRepository.findById(eventMakerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + eventMakerId + " не найден"));
+        Subscription subscription = subscriptionRepository.findByFollowerIdAndEventMakerId(follower.getId(), eventPublisher.getId());
+        subscriptionRepository.delete(subscription);
     }
 
     @Override
-    public List<UserDtoWithSubscribe> getUserSubscribesByFollowerId(int followerId) {
+    public List<UserShortDto> getUserSubscribesByFollowerId(int followerId) {
         User follower = userRepository.findById(followerId).orElseThrow(() -> new UserNotFountException("Пользователь с id " + followerId + " не найден"));
-        return userRepository.findAllByIdIn(follower.getEventMakers().stream().map(User::getId).collect(Collectors.toList())).stream().map(UserMapper::toUserDtoSubscribe).collect(Collectors.toList());
+        List<Subscription> subscription = subscriptionRepository.findAllByFollowerId(follower.getId());
+        return subscription.stream().map(e -> UserMapper.toUserShort(e.getEventMaker())).collect(Collectors.toList());
     }
 
     private void validate(User user) {

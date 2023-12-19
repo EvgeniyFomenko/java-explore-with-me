@@ -25,5 +25,5 @@ public interface EventRepository extends JpaRepository<Event, Integer>, Querydsl
 
     List<Event> findAllByIdIn(Integer[] ids);
 
-    List<Event> findAllByInitiatorIdIn(List<Integer> eventMakers);
+    List<Event> findAllByInitiatorIdInAndState(List<Integer> eventMakers, State state);
 }
